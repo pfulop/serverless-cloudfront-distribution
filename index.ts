@@ -131,7 +131,10 @@ class ServerlessCloudfrontDistributionCertificate {
     }
 
     const credentials = this.serverless.providers.aws.getCredentials();
-    this.route53 = new this.serverless.providers.aws.sdk.Route53(credentials);
+    this.route53 = new this.serverless.providers.aws.sdk.Route53({
+      ...credentials,
+      region: this.options.region,
+    });
 
     const validationPromises = validations.map(async (validation) => {
       this.serverless.cli.log(`Validating certificate`);
@@ -228,10 +231,10 @@ class ServerlessCloudfrontDistributionCertificate {
       return;
     }
     const credentials = this.serverless.providers.aws.getCredentials();
-    const acmCredentials = Object.assign({}, credentials, {
-      region: "us-east-1",
+    this.acm = new this.serverless.providers.aws.sdk.ACM({
+      ...credentials,
+      region: this.options.region,
     });
-    this.acm = new this.serverless.providers.aws.sdk.ACM(acmCredentials);
     const statuses = ["PENDING_VALIDATION", "ISSUED", "INACTIVE"];
     const certData = await this.acm
       .listCertificates({ CertificateStatuses: statuses })
